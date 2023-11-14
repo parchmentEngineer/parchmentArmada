@@ -25,7 +25,7 @@ namespace parchmentArmada.Cards
                 case Upgrade.A:
                     list.Add(new CardActions.ATrinityActivateNext() { amount = 1, disabled = flipped });
                     list.Add(new ADummyAction());
-                    list.Add(new AStatus() { targetPlayer = true, status = Status.tempShield, statusAmount = 3, disabled = !flipped });
+                    list.Add(new AStatus() { targetPlayer = true, status = Status.tempShield, statusAmount = 2, disabled = !flipped });
                     break;
 
                 case Upgrade.B:
@@ -41,6 +41,7 @@ namespace parchmentArmada.Cards
         {
             cost = upgrade == Upgrade.B ? 2 : 1,
             floppable = upgrade == Upgrade.B ? false : true,
+            retain = upgrade == Upgrade.A ? true : false,
             art = upgrade == Upgrade.B ? Spr.cards_BigShield : (flipped ? Spr.cards_Adaptability_Bottom : Spr.cards_Adaptability_Top)
         };
 

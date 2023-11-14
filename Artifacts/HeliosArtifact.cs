@@ -58,6 +58,7 @@ namespace parchmentArmada.Artifacts
             bool playedCenter = false;
             if (handCount % 2 == 1 && handPosition == Math.Floor((decimal)handCount / 2)) playedCenter = true;
             else if (handCount % 2 == 0 && (handPosition == handCount/2 || handPosition == (handCount/2)-1)) playedCenter = true;
+            Helios.handCount = handCount;
             if (playedCenter)
             { 
                 var status = (Status)(Helios.solarCharge.Id ?? throw new NullReferenceException());
@@ -66,9 +67,16 @@ namespace parchmentArmada.Artifacts
                 if (state.ship.statusEffects.TryGetValue(status, out amt))
                 { statusAmt = amt; }
                 else { statusAmt = 0; }
-                if (statusAmt >= 9)
+
+                int statusToAdd = combat.energy;
+                combat.Queue(new AEnergy() { changeAmount = -combat.energy });
+                combat.Queue(new AStatus() { status = status, statusAmount = statusToAdd, targetPlayer = true });
+                statusAmt += statusToAdd;
+                Helios.statusCount = statusAmt;
+                if (statusAmt >= 5)
+
                 {
-                    combat.Queue(new AStatus() { status = status, statusAmount = 1, targetPlayer = true });
+                    //combat.Queue(new AStatus() { status = status, statusAmount = 1, targetPlayer = true });
                     combat.Queue(new AHeliosFireLaser() { });
                     combat.Queue(new AAttack() { damage = 1, fast = true });
                     combat.Queue(new AAttack() { damage = 1, fast = true });
@@ -77,11 +85,6 @@ namespace parchmentArmada.Artifacts
                     combat.Queue(new AStatus() { status = status, statusAmount = -10, targetPlayer = true });
                     //combat.Queue(new AEndTurn());
                     Helios.statusCount = 0;
-                }
-                else
-                {
-                    combat.Queue(new AStatus() { status = status, statusAmount = 1, targetPlayer = true });
-                    Helios.statusCount = statusAmt + 1;
                 }
             }
             

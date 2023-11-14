@@ -126,8 +126,8 @@ namespace parchmentArmada.Ships
                 trinity.GlobalName,
                 new ExternalCard[] { TrinityStarterCard ?? throw new Exception(), TrinityStarterCard, TrinityStarterCard },
                 new ExternalArtifact[] { artifacts["TRI-VENGE"], artifacts["FUEL HELIX"] },
-                new Type[0],
-                new Type[0]);
+                new Type[] { typeof(DodgeColorless), typeof(CannonColorless), typeof(CannonColorless) },
+                new Type[] { typeof(ShieldPrep) });
 
             trinityShip.AddLocalisation("Trinity", "A powerful, triple-barreled ship whose unique cannons only become active when put under stress.");
             registry.RegisterStartership(trinityShip);

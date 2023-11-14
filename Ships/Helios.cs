@@ -31,7 +31,24 @@ namespace parchmentArmada.Ships
         public static int center = -1;
         public static Card centerCard;
         public static int statusCount = 0;
+        public static int handCount = 0;
 
+        public struct StatusPlan
+        {
+            public int boxWidth;
+
+            public bool asText;
+
+            public bool asBars;
+
+            public int barMax;
+
+            public string? txt;
+
+            public int barTickWidth;
+
+            public StatusDef statusDef;
+        }
 
         private void addSprite(string name, IArtRegistry artRegistry)
         {
@@ -121,19 +138,19 @@ namespace parchmentArmada.Ships
             var heliosShip = new ExternalStarterShip("parchment.armada.Helios",
                 helios.GlobalName,
                 new ExternalCard[0],
-                new ExternalArtifact[] {HeliosArtifact ?? throw new Exception()},
-                new Type[0],
-                new Type[0]);
+                new ExternalArtifact[] { HeliosArtifact ?? throw new Exception() },
+                new Type[] { typeof(DodgeColorless), typeof(BasicShieldColorless), typeof(CannonColorless), typeof(CannonColorless) },
+                new Type[] { new ShieldPrep().GetType() });
 
             heliosShip.AddLocalisation("Helios", "An experimental ship built around a titanic solar cannon. Charge it by playing your centermost card.");
-            //registry.RegisterStartership(heliosShip);
+            registry.RegisterStartership(heliosShip);
         }
 
         public void LoadManifest(IStatusRegistry statusRegistry)
         {
             solarCharge = new ExternalStatus("parchment.armada.solarCharge", true, System.Drawing.Color.Red, null, sprites["helios_status"] ?? throw new Exception("missing sprite"), false);
             statusRegistry.RegisterStatus(solarCharge);
-            solarCharge.AddLocalisation("Solar Charge", "Your solar cannon is charging. At 10 charges, it fires a burst of six shots.");
+            solarCharge.AddLocalisation("Solar Charge", "Your solar cannon is charging. At 5 charges, it fires a burst of six shots.");
         }
 
         public void LoadManifest(IArtifactRegistry registry)
@@ -143,7 +160,7 @@ namespace parchmentArmada.Ships
 
             var spr = sprites["helios_artifact"];
             HeliosArtifact = new ExternalArtifact(typeof(Artifacts.HeliosArtifact), "parchment.armada.HeliosArtifact", spr, null, new ExternalGlossary[0]);
-            HeliosArtifact.AddLocalisation("en", "SOLAR CANNON", "When you play the centermost card of your hand, gain a Solar Charge. At 10 charges, your solar cannon fires a burst of six 1-damage shots.");
+            HeliosArtifact.AddLocalisation("en", "SOLAR CANNON", "After you play the centermost card of your hand, lose all remaining energy and gain 1 <c=status>Solar Charge</c> per energy lost. At 5 charges, your solar cannon fires a burst of six 1-damage shots.");
             registry.RegisterArtifact(HeliosArtifact);
         }
 
@@ -152,6 +169,26 @@ namespace parchmentArmada.Ships
             var patch_method = typeof(Card).GetMethod("Render") ?? throw new Exception("Couldnt find method");
             var patch_target = typeof(Helios).GetMethod("HeliosCardDrawPatch", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic) ?? throw new Exception("Couldnt find TrinityManifest.TrivengeNormalDamagePatch method");
             harmony.Patch(patch_method, prefix: new HarmonyMethod(patch_target));
+
+            var patch_target_2 = typeof(Ship).GetMethod("GetStatusSize", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            var patch_method_2 = typeof(Helios).GetMethod("HeliosStatusSizePatch", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            //harmony.Patch(patch_target_2, postfix: new HarmonyMethod(patch_method_2));
+        }
+
+        private static void HeliosStatusSizePatch(G g, Status status, int amount, ref object __result)
+        {
+            var shipType = typeof(Ship);
+            var statusPlanType = AccessTools.Inner(shipType, "StatusPlan")!;
+            var asTextField = AccessTools.Field(statusPlanType, "asText")!;
+            asTextField.SetValue(__result, false);
+
+            /*if (status == (Status)(Helios.solarCharge.Id))
+            {
+                __result.asText = false;
+                __result.asBars = true;
+                __result.barMax = 5;
+                __result.boxWidth = 17 + __result.barMax * (__result.barTickWidth + 1);
+            }*/
 
         }
 
@@ -179,16 +216,36 @@ namespace parchmentArmada.Ships
             //double yoff = Math.Min(Math.Max(Math.Abs(__instance.targetPos.x - __instance.pos.x)-10,0)*6, 10);
             double yoff = 0;
             //Draw.Rect(vec.x, vec.y, 300, 3, new Color(255,0,0));
-            foreach (Artifact artifact in g.state.artifacts) { 
-                if (artifact.Name() == "SOLAR CANNON") {
-                    Vec tPos = __instance.targetPos;
-                    if (tPos.x > 160 && tPos.x < 240 && tPos.y > 120)
+            if (handCount > 8)
+            {
+                foreach (Artifact artifact in g.state.artifacts)
+                {
+                    if (artifact.Name() == "SOLAR CANNON")
                     {
-                        Spr spr = statusCount >= 9 ? (Spr)sprites["helios_warning2"].Id : (Spr)sprites["helios_warning1"].Id;
-                        Draw.Sprite(spr, rect.x + 27, rect.y + 18 + yoff);
+                        Vec tPos = __instance.targetPos;
+                        if (tPos.x > 190 && tPos.x < 220 && tPos.y > 120)
+                        {
+                            Spr spr = statusCount >= 9 ? (Spr)sprites["helios_warning2"].Id : (Spr)sprites["helios_warning1"].Id;
+                            Draw.Sprite(spr, rect.x + 27, rect.y + 18 + yoff);
+                        }
+                    }
+                }
+            } else
+            {
+                foreach (Artifact artifact in g.state.artifacts)
+                {
+                    if (artifact.Name() == "SOLAR CANNON")
+                    {
+                        Vec tPos = __instance.targetPos;
+                        if (tPos.x > 170 && tPos.x < 240 && tPos.y > 120)
+                        {
+                            Spr spr = statusCount >= 9 ? (Spr)sprites["helios_warning2"].Id : (Spr)sprites["helios_warning1"].Id;
+                            Draw.Sprite(spr, rect.x + 27, rect.y + 18 + yoff);
+                        }
                     }
                 }
             }
+            
 
             //Draw.Rect(0, 0, 20, 20, new Color(255, 0, 0));
             return true;

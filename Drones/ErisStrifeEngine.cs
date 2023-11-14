@@ -91,11 +91,10 @@ namespace parchmentArmada.Drones
             if(Math.Abs(fakeOffset) < 0.25) { fakeOffset = 0; }
         }
 
-        //change this to GetActionsOnBonkedWhileInvincible or whatever it's called once that releases
-        public override List<CardAction>? GetActionsOnDestroyed(State s, Combat c, bool wasPlayer, int worldX)
+        public override List<CardAction>? GetActionsOnBonkedWhileInvincible(State s, Combat c, bool wasPlayer, StuffBase thing)
         {
             if (wasPlayer) { charge += 2; if (charge > 5) charge = 5; }
-            if (wasPlayer) { eCharge += 2; if (eCharge > 5) eCharge = 5; }
+            if (!wasPlayer) { eCharge += 2; if (eCharge > 5) eCharge = 5; }
             return null;
         }
 

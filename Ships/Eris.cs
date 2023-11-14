@@ -146,6 +146,8 @@ namespace parchmentArmada.Ships
                 );
             shipRegistry.RegisterShip(eris);
         }
+
+        
         public void LoadManifest(IStartershipRegistry registry)
         {
             if (eris == null)
@@ -154,8 +156,8 @@ namespace parchmentArmada.Ships
                 eris.GlobalName,
                 new ExternalCard[0],
                 new ExternalArtifact[] { artifacts["STRIFE DRONE HUB"], artifacts["DISCORD"] },
-                new Type[] {},
-                new Type[] {});
+                new Type[] { typeof(DodgeColorless), typeof(BasicShieldColorless), typeof(CannonColorless) },
+                new Type[] { new ShieldPrep().GetType() });
             erisShip.AddLocalisation("Eris", "A light scout with exceptionally weak cannons, equipped to spread strife and discord.");
             registry.RegisterStartership(erisShip);
         }
